@@ -13,3 +13,6 @@
 
 # dep
 vendor/
+
+# exec
+slack_exchange
