@@ -2,6 +2,7 @@ package main
 
 
 import (
+	"fmt"
 	"io/ioutil"
 	"encoding/json"
 	"log"
@@ -11,6 +12,11 @@ import (
 	"github.com/nlopes/slack"
 	"github.com/nlopes/slack/slackevents"
 )
+
+
+func commandStatus(args []string) {
+
+}
 
 
 func (s *Server) handleEvents() http.HandlerFunc {
@@ -54,9 +60,11 @@ func (s *Server) handleEvents() http.HandlerFunc {
 
 			switch ev := innerEvent.Data.(type) {
 			case *slackevents.AppMentionEvent:
+				user := getOrCreateUser(s.users, ev.User)
+
 				// TODO check for format
 				command := strings.Join(strings.Split(ev.Text, " ")[1:], " ")
-				_, _, err := s.client.PostMessage(ev.Channel, command, slack.PostMessageParameters{})
+				_, _, err := s.client.PostMessage(ev.Channel, fmt.Sprintf("%s %s %d", command, user.id, user.money), slack.PostMessageParameters{})
 				if err != nil {
 					log.Printf("error: %v", err)
 					log.Print("error posting message")
