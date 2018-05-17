@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 
-	//"github.com/nlopes/slack"
+	"github.com/nlopes/slack"
 	"github.com/nlopes/slack/slackevents"
 )
 
@@ -26,7 +26,7 @@ func main() {
 		log.Fatal("Verification token required")
 	}
 
-	//api := slack.New(apiToken)
+	client := slack.New(apiToken)
 
 	http.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
 		buffer, err := ioutil.ReadAll(r.Body)
@@ -63,9 +63,39 @@ func main() {
 			w.Header().Set("Content-Type", "application/json")
 			w.Write([]byte(request.Challenge))
 
+		case slackevents.CallbackEvent:
+			innerEvent := event.InnerEvent
+
+			switch ev := innerEvent.Data.(type) {
+			case *slackevents.AppMentionEvent:
+				_, _, err := client.PostMessage(ev.Channel, ev.Text, slack.PostMessageParameters{})
+				if err != nil {
+					log.Printf("error: %v", err)
+					log.Print("error posting message")
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+
+			case *slackevents.MessageEvent:
+				/* FIXME
+				 * The library currently has no sub_type so I can't tell
+				 * whether the messages are from the bot or user
+				 */
+				log.Printf("%v", ev)
+				_, _, err := client.PostMessage(ev.Channel, ev.Text, slack.PostMessageParameters{})
+				if err != nil {
+					log.Printf("error: %v", err)
+					log.Print("error posting message")
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+			}
+
+			w.WriteHeader(http.StatusOK)
+			w.Write(nil)
+
 		default:
 			w.WriteHeader(http.StatusInternalServerError)
-			return
 		}
 	})
 
