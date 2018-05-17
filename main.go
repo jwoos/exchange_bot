@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/nlopes/slack"
 	"github.com/nlopes/slack/slackevents"
@@ -68,7 +69,9 @@ func main() {
 
 			switch ev := innerEvent.Data.(type) {
 			case *slackevents.AppMentionEvent:
-				_, _, err := client.PostMessage(ev.Channel, ev.Text, slack.PostMessageParameters{})
+				// TODO check for format
+				command := strings.Join(strings.Split(ev.Text, " ")[1:], " ")
+				_, _, err := client.PostMessage(ev.Channel, command, slack.PostMessageParameters{})
 				if err != nil {
 					log.Printf("error: %v", err)
 					log.Print("error posting message")
