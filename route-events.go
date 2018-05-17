@@ -14,10 +14,61 @@ import (
 )
 
 
-func commandStatus(args []string) {
+func urlVerificationEvent(s *Server, w http.ResponseWriter, buffer []byte) {
+	var request slackevents.ChallengeResponse
+	err := json.Unmarshal(buffer, &request)
+	if err != nil {
+		log.Printf("error: %v", err)
+		log.Print("error unmarshalling")
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(request.Challenge))
 }
 
+func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPIInnerEvent) {
+	switch ev := event.Data.(type) {
+	case *slackevents.AppMentionEvent:
+		user := getOrCreateUser(s.users, ev.User)
+
+		// TODO check for format
+		command := strings.Split(ev.Text, " ")[1:]
+
+		_, _, err := s.client.PostMessage(
+			ev.Channel,
+			fmt.Sprintf("%s %s %d", strings.Join(command, " "), user.id, user.money),
+			slack.PostMessageParameters{},
+		)
+		if err != nil {
+			log.Printf("error: %v", err)
+			log.Print("error posting message")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+	case *slackevents.MessageEvent:
+		user := getOrCreateUser(s.users, ev.User)
+
+		// TODO check for format
+		command := strings.Split(ev.Text, " ")
+
+		_, _, err := s.client.PostMessage(
+			ev.Channel,
+			fmt.Sprintf("%s %s %d", strings.Join(command, " "), user.id, user.money),
+			slack.PostMessageParameters{},
+		)
+		if err != nil {
+			log.Printf("error: %v", err)
+			log.Print("error posting message")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(nil)
+}
 
 func (s *Server) handleEvents() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +84,10 @@ func (s *Server) handleEvents() http.HandlerFunc {
 
 		log.Printf("body: %s", body)
 
-		event, err := slackevents.ParseEvent(json.RawMessage(body), slackevents.OptionVerifyToken(&slackevents.TokenComparator{s.token.verification}))
+		event, err := slackevents.ParseEvent(
+			json.RawMessage(body),
+			slackevents.OptionVerifyToken(&slackevents.TokenComparator{s.token.verification}),
+		)
 		if err != nil {
 			log.Printf("error: %v", err)
 			log.Print("error parsing event")
@@ -43,52 +97,10 @@ func (s *Server) handleEvents() http.HandlerFunc {
 
 		switch event.Type {
 		case slackevents.URLVerification:
-			var request slackevents.ChallengeResponse
-			err = json.Unmarshal(buffer, &request)
-			if err != nil {
-				log.Printf("error: %v", err)
-				log.Print("error unmarshalling")
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-
-			w.Header().Set("Content-Type", "application/json")
-			w.Write([]byte(request.Challenge))
+			urlVerificationEvent(s, w, buffer)
 
 		case slackevents.CallbackEvent:
-			innerEvent := event.InnerEvent
-
-			switch ev := innerEvent.Data.(type) {
-			case *slackevents.AppMentionEvent:
-				user := getOrCreateUser(s.users, ev.User)
-
-				// TODO check for format
-				command := strings.Join(strings.Split(ev.Text, " ")[1:], " ")
-				_, _, err := s.client.PostMessage(ev.Channel, fmt.Sprintf("%s %s %d", command, user.id, user.money), slack.PostMessageParameters{})
-				if err != nil {
-					log.Printf("error: %v", err)
-					log.Print("error posting message")
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-
-			case *slackevents.MessageEvent:
-				/* FIXME
-				 * The library currently has no sub_type so I can't tell
-				 * whether the messages are from the bot or user
-				 */
-				log.Printf("%v", ev)
-				_, _, err := s.client.PostMessage(ev.Channel, ev.Text, slack.PostMessageParameters{})
-				if err != nil {
-					log.Printf("error: %v", err)
-					log.Print("error posting message")
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-			}
-
-			w.WriteHeader(http.StatusOK)
-			w.Write(nil)
+			callbackEvent(s, w, event.InnerEvent)
 
 		default:
 			w.WriteHeader(http.StatusInternalServerError)
