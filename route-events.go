@@ -35,9 +35,23 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 		// TODO check for format
 		command := strings.Split(ev.Text, " ")[1:]
 
-		_, _, err := s.client.PostMessage(
+		fn, okay := commandMap[command[0]]
+		if !okay {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Invalid Command"))
+			return
+		}
+
+		response, err := fn(s, user)
+		if err != nil {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(fmt.Sprintf("%v", err)))
+			return
+		}
+
+		_, _, err = s.client.PostMessage(
 			ev.Channel,
-			fmt.Sprintf("%s %s %d", strings.Join(command, " "), user.id, user.money),
+			response,
 			slack.PostMessageParameters{},
 		)
 		if err != nil {
