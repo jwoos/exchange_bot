@@ -13,7 +13,7 @@ func TestMarketBatchQuote(t *testing.T) {
 	var mb IEXMarketBatch
 
 	t.Run(
-		"Marshal Quote",
+		"Unmarshal Quote",
 		func(innerT *testing.T) {
 			err := json.Unmarshal([]byte(raw), &mb.Batch)
 			if err != nil {
@@ -42,7 +42,7 @@ func TestMarketBatchQuote(t *testing.T) {
 
 	// TODO fix skipped test
 	t.Run(
-		"Unmarshal Quote",
+		"Marshal Quote",
 		func(innerT *testing.T) {
 			innerT.Skip("Skipping due to float inconsistency")
 
@@ -66,7 +66,7 @@ func TestMarketBatchPrice(t *testing.T) {
 	var mb IEXMarketBatch
 
 	t.Run(
-		"Marshal Price",
+		"Unmarshal Price",
 		func(innerT *testing.T) {
 			err := json.Unmarshal([]byte(raw), &mb.Batch)
 			if err != nil {
@@ -92,7 +92,7 @@ func TestMarketBatchPrice(t *testing.T) {
 	)
 
 	t.Run(
-		"Unmarshal Price",
+		"Marshal Price",
 		func(innerT *testing.T) {
 			marshalled, err := json.Marshal(mb.Batch)
 			if err != nil {
