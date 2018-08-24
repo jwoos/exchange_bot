@@ -42,7 +42,7 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 			return
 		}
 
-		response, err := fn(s, user)
+		response, err := fn(s, user, command)
 		if err != nil {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprintf("%v", err)))
