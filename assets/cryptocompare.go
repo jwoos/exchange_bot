@@ -12,7 +12,6 @@ import (
 type CCRequest struct {
 	FromSymbols []string
 	ToSymbols []string
-	Information []string
 }
 
 
