@@ -2,9 +2,12 @@ package main
 
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 )
+
+
+var mainLogger = initializeLogger("main")
 
 
 func main() {
@@ -14,7 +17,7 @@ func main() {
 	// register routes
 	server.routes()
 
-	const port string = ":8000"
-	log.Printf("Listening on %s", port)
-	log.Fatal(http.ListenAndServe(port, server.router))
+	mainLogger.Infof("Listening on %s", PORT)
+	err := http.ListenAndServe(PORT, server.router)
+	mainLogger.Critical(fmt.Sprintf("%v", err))
 }

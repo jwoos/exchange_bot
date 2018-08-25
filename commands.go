@@ -16,7 +16,7 @@ var commandMap = map[string]func(*Server, *User, []string) (string, error){
 
 // TODO
 var helpMap = map[string]string{
-	"help" : "View this dialogue",
+	"help" : "View this dialog",
 	"sget <symbol>": "Get information for <symbol> stock",
 	"cget <symbol>": "Get information for <symbol> crypto",
 	"sbuy <symbol> <amount>": "Buy <amount> of <symbol>",
@@ -30,6 +30,19 @@ var helpMap = map[string]string{
 	"meme": "Post a meme",
 }
 
+
+func errorCommand(s *Server, u *User, cmd []string) (string, error) {
+	builder := strings.Builder{}
+
+	builder.WriteString(
+		fmt.Sprintf("Invalid command: %s\n", strings.Join(cmd, " ")),
+	)
+	builder.WriteString("Look below for a valid command \n================\n")
+	helpDialog, _ := helpCommand(s, u, cmd)
+	builder.WriteString(helpDialog)
+
+	return builder.String(), nil
+}
 
 func helpCommand(s *Server, u *User, cmd []string) (string, error) {
 	builder := strings.Builder{}
@@ -70,19 +83,21 @@ func balanceCommand(s *Server, u *User, cmd []string) (string, error) {
 }
 
 // TODO
-func portfolioCommand(s *Server, u *User, cmd []string) (string, error) {
-	builder := strings.Builder{}
-
-	portfolio := u.portfolio
-
-	stock := portfolio.stock
-	builder.WriteString("Stock\n")
-	for symbol, assets := range stock {
-		for assert := range assets {
-
-		}
-	}
-	cryptocurrency := portfolio.cryptocurrency
-
-	return builder.String(), nil
-}
+/*
+ *func portfolioCommand(s *Server, u *User, cmd []string) (string, error) {
+ *    builder := strings.Builder{}
+ *
+ *    portfolio := u.portfolio
+ *
+ *    stock := portfolio.stock
+ *    builder.WriteString("Stock\n")
+ *    for symbol, assets := range stock {
+ *        for asset := range assets {
+ *
+ *        }
+ *    }
+ *    cryptocurrency := portfolio.cryptocurrency
+ *
+ *    return builder.String(), nil
+ *}
+ */

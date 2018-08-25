@@ -14,12 +14,14 @@ import (
 )
 
 
+var routeEventsLogger = initializeLogger("route-events")
+
+
 func urlVerificationEvent(s *Server, w http.ResponseWriter, buffer []byte) {
 	var request slackevents.ChallengeResponse
 	err := json.Unmarshal(buffer, &request)
 	if err != nil {
-		log.Printf("error: %v", err)
-		log.Print("error unmarshalling")
+		routeEventsLogger.Warningf("Error unmarshalling: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -37,8 +39,13 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 
 		fn, okay := commandMap[command[0]]
 		if !okay {
+			response, _ := errorCommand(s, user, command)
+			s.client.PostMessage(
+				ev.Channel,
+				response,
+				slack.PostMessageParameters{},
+			)
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Invalid Command"))
 			return
 		}
 
