@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strings"
 
@@ -52,7 +51,6 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 		response, err := fn(s, user, command)
 		if err != nil {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(fmt.Sprintf("%v", err)))
 			return
 		}
 
@@ -62,8 +60,7 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 			slack.PostMessageParameters{},
 		)
 		if err != nil {
-			log.Printf("error: %v", err)
-			log.Print("error posting message")
+			routeEventsLogger.Errorf("error posting message: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -80,8 +77,7 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 			slack.PostMessageParameters{},
 		)
 		if err != nil {
-			log.Printf("error: %v", err)
-			log.Print("error posting message")
+			routeEventsLogger.Errorf("error posting message: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -95,23 +91,21 @@ func (s *Server) handleEvents() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		buffer, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			log.Printf("error: %v", err)
-			log.Print("error reading body")
+			routeEventsLogger.Errorf("error reading body: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		body := string(buffer)
 
-		log.Printf("body: %s", body)
+		routeEventsLogger.Debugf("body: %s", body)
 
 		event, err := slackevents.ParseEvent(
 			json.RawMessage(body),
 			slackevents.OptionVerifyToken(&slackevents.TokenComparator{s.token.verification}),
 		)
 		if err != nil {
-			log.Printf("error: %v", err)
-			log.Print("error parsing event")
+			routeEventsLogger.Errorf("error parsing event: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

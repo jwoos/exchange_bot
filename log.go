@@ -7,17 +7,19 @@ import (
 	"github.com/op/go-logging"
 )
 
+var initialized = false
+
 
 func initializeLogger(name string) *logging.Logger {
-	format := logging.MustStringFormatter(
-		`%{color}[%{time:01/02/06 15:04:05} %{level} %{shortfile}]%{color:reset} %{message}`,
-	)
-	backend1 := logging.NewLogBackend(os.Stdin, "", 0)
-	backend2 := logging.NewLogBackend(os.Stderr, "", 0)
-	backend2Formatter := logging.NewBackendFormatter(backend2, format)
-	backend1Leveled := logging.AddModuleLevel(backend1)
-	backend1Leveled.SetLevel(logging.ERROR, "")
-	logging.SetBackend(backend1Leveled, backend2Formatter)
+	if !initialized {
+		format := logging.MustStringFormatter(
+			`%{color}[%{time:01/02/06 15:04:05} %{level} %{shortfile}]%{color:reset} %{message}`,
+		)
+		backendStdin := logging.NewLogBackend(os.Stdin, "", 0)
+		backendStdinFormatter := logging.NewBackendFormatter(backendStdin, format)
+		logging.SetBackend(backendStdinFormatter)
+		initialized = true
+	}
 
 	return logging.MustGetLogger(name)
 }
