@@ -4,25 +4,25 @@ package main
 import (
 	"fmt"
 	"strings"
+
+	"github.com/jwoos/slack_exchange/assets"
 )
+
+
+var commandsLogger = initializeLogger("commands")
 
 
 var commandMap = map[string]func(*Server, *User, []string) (string, error){
 	"help": helpCommand,
-	"sget": getCommand,
-	"cget": getCommand,
+	"get": getCommand,
 	"balance": balanceCommand,
 }
 
-// TODO
 var helpMap = map[string]string{
 	"help" : "View this dialog",
-	"sget <symbol>": "Get information for <symbol> stock",
-	"cget <symbol>": "Get information for <symbol> crypto",
-	"sbuy <symbol> <amount>": "Buy <amount> of <symbol>",
-	"cbuy <symbol> <amount>": "Buy <amount> of <symbol>",
-	"ssell <symbol> <amount>": "Sell <amount> of <symbol>",
-	"csell <symbol> <amount>": "Sell <amount> of <symbol>",
+	"get (c[rypto|s[tock]) <symbol> ...": "Get information for <symbol> where c is crypto and s is stocks",
+	"buy (c[rypto|s[tock]) <symbol> <amount>": "Buy <amount> of <symbol> where c is crypto and s is stocks",
+	"sell (c[rypto]|s[tock]) <symbol> <amount>": "Sell <amount> of <symbol> where c is crypto and s is stocks",
 	"balance": "View your available balance",
 	"portfolio": "View your portfolio",
 	"leaderboard": "View the leaderboard",
@@ -65,16 +65,53 @@ func helpCommand(s *Server, u *User, cmd []string) (string, error) {
 
 // TODO
 func getCommand(s *Server, u *User, cmd []string) (string, error) {
-	//builder := strings.Builder{}
+	builder := strings.Builder{}
+
+	symbols := make([]string, len(cmd[2:]))
+	for i, sym := range cmd[2:] {
+		symbols[i] = strings.ToUpper(sym)
+	}
 
 	var err error
 	switch cmd[1] {
+	case "s":
+		fallthrough
 	case "stock":
+		iex := assets.IEXMarketBatch{}
+		err = iex.Fetch(assets.IEXRequest{
+			Information: []string{"price"},
+			Symbols: symbols,
+		})
+		if err != nil {
+			commandsLogger.Errorf("error fetching stock price: %v", err)
+		}
+
+		for sym, to := range iex.Batch {
+			builder.WriteString(fmt.Sprintf("%s: %f\n", sym, *to.Price))
+		}
+
+	case "c":
+		fallthrough
 	case "crypto":
+		cc := assets.CCMulti{}
+		err = cc.Fetch(assets.CCRequest{
+			FromSymbols: symbols,
+			ToSymbols: []string{"USD"},
+		})
+		if err != nil {
+			commandsLogger.Errorf("error fetching crypto price: %v", err)
+		}
+
+		for sym, to := range cc.Batch {
+			usd, _ := to["USD"]
+			builder.WriteString(fmt.Sprintf("%s: %f\n", sym, usd))
+		}
+
 	default:
+		builder.WriteString("Invalid option, please give one of s[tock] or c[rypto]")
 	}
 
-	return "", err
+	return builder.String(), err
 }
 
 func balanceCommand(s *Server, u *User, cmd []string) (string, error) {
