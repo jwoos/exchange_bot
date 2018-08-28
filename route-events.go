@@ -29,58 +29,44 @@ func urlVerificationEvent(s *Server, w http.ResponseWriter, buffer []byte) {
 }
 
 func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPIInnerEvent) {
-	switch ev := event.Data.(type) {
-	case *slackevents.AppMentionEvent:
-		user := getOrCreateUser(s.users, ev.User)
+	if event.Data.(type) != *slackevents.AppMentionEvent ||
+	events.Data.(type) != *slackevents.MessageEvent {
+		// TODO error here
+	}
 
-		// TODO check for format
-		command := strings.Split(ev.Text, " ")[1:]
+	user := getOrCreateUser(s.users, ev.User)
 
-		fn, okay := commandMap[command[0]]
-		if !okay {
-			response, _ := errorCommand(s, user, command)
-			s.client.PostMessage(
-				ev.Channel,
-				response,
-				slack.PostMessageParameters{},
-			)
-			w.WriteHeader(http.StatusOK)
-			return
-		}
+	// TODO check for format
+	// Normalize to lowercase
+	command := strings.Split(strings.ToLower(ev.Text), " ")[1:]
 
-		response, err := fn(s, user, command)
-		if err != nil {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		_, _, err = s.client.PostMessage(
+	fn, okay := commandMap[command[0]]
+	if !okay {
+		response, _ := errorCommand(s, user, command)
+		s.client.PostMessage(
 			ev.Channel,
 			response,
 			slack.PostMessageParameters{},
 		)
-		if err != nil {
-			routeEventsLogger.Errorf("error posting message: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 
-	case *slackevents.MessageEvent:
-		user := getOrCreateUser(s.users, ev.User)
+	response, err := fn(s, user, command)
+	if err != nil {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 
-		// TODO check for format
-		command := strings.Split(ev.Text, " ")
-
-		_, _, err := s.client.PostMessage(
-			ev.Channel,
-			fmt.Sprintf("%s %s %d", strings.Join(command, " "), user.id, user.money),
-			slack.PostMessageParameters{},
-		)
-		if err != nil {
-			routeEventsLogger.Errorf("error posting message: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+	_, _, err = s.client.PostMessage(
+		ev.Channel,
+		response,
+		slack.PostMessageParameters{},
+	)
+	if err != nil {
+		routeEventsLogger.Errorf("error posting message: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)

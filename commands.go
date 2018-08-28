@@ -14,15 +14,17 @@ var commandsLogger = initializeLogger("commands")
 
 var commandMap = map[string]func(*Server, *User, []string) (string, error){
 	"help": helpCommand,
-	"get": getCommand,
+	"price": priceCommand,
+	"quote": quoteCommand,
 	"balance": balanceCommand,
 }
 
 var helpMap = map[string]string{
 	"help" : "View this dialog",
-	"get (c[rypto|s[tock]) <symbol> ...": "Get information for <symbol> where c is crypto and s is stocks",
-	"buy (c[rypto|s[tock]) <symbol> <amount>": "Buy <amount> of <symbol> where c is crypto and s is stocks",
-	"sell (c[rypto]|s[tock]) <symbol> <amount>": "Sell <amount> of <symbol> where c is crypto and s is stocks",
+	"price (c[rypto|s[tock]) <symbol> ...": "Get price for <symbol> where c is crypto and s is stock",
+	"quote (c[rypto|s[tock]) <symbol> ...": "Get quote for <symbol> where c is crypto and s is stock",
+	"buy (c[rypto|s[tock]) <symbol> <amount>": "Buy <amount> of <symbol> where c is crypto and s is stock",
+	"sell (c[rypto]|s[tock]) <symbol> <amount>": "Sell <amount> of <symbol> where c is crypto and s is stock",
 	"balance": "View your available balance",
 	"portfolio": "View your portfolio",
 	"leaderboard": "View the leaderboard",
@@ -63,8 +65,7 @@ func helpCommand(s *Server, u *User, cmd []string) (string, error) {
 	return builder.String(), nil
 }
 
-// TODO
-func getCommand(s *Server, u *User, cmd []string) (string, error) {
+func priceCommand(s *Server, u *User, cmd []string) (string, error) {
 	builder := strings.Builder{}
 
 	symbols := make([]string, len(cmd[2:]))
