@@ -16,7 +16,7 @@ type CCRequest struct {
 
 
 type CCMulti struct {
-	Batch map[string]map[string]float32
+	Batch map[string]map[string]float64
 }
 
 

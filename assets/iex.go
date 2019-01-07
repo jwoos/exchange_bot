@@ -21,7 +21,7 @@ type IEXMarketBatch struct {
 
 type IEXMarketBatchTypes struct {
 	Quote *IEXQuote  `json:"quote,omitempty"`
-	Price *float32 `json:"price,omitempty"`
+	Price *float64 `json:"price,omitempty"`
 }
 
 
@@ -31,37 +31,37 @@ type IEXQuote struct {
 	PrimaryExchange  string  `json:"primaryExchange"`
 	Sector           string  `json:"sector"`
 	CalculationPrice string  `json:"calculationPrice"`
-	Open             float32 `json:"open"`
+	Open             float64 `json:"open"`
 	OpenTime         uint    `json:"openTime"`
-	Close            float32 `json:"close"`
+	Close            float64 `json:"close"`
 	CloseTime        uint    `json:"closeTime"`
-	High             float32 `json:"high"`
-	Low              float32 `json:"low"`
-	LatestPrice      float32 `json:"latestPrice"`
+	High             float64 `json:"high"`
+	Low              float64 `json:"low"`
+	LatestPrice      float64 `json:"latestPrice"`
 	LatestSource     string  `json:"latestSource"`
 	LatestTime       string  `json:"latestTime"`
 	LatestUpdate     uint    `json:"latestUpdate"`
 	LatestVolume     uint    `json:"latestVolume"`
-	IEXRealtimePrice float32 `json:"iexRealtimePrice"`
+	IEXRealtimePrice float64 `json:"iexRealtimePrice"`
 	IEXRealtimeSize  uint    `json:"iexRealtimeSize"`
 	IEXLastUpdated   uint    `json:"iexLastUpdated"`
-	DelayedPrice     float32 `json:"delayedPrice"`
+	DelayedPrice     float64 `json:"delayedPrice"`
 	DelayedPriceTime uint    `json:"delayedPriceTime"`
-	PreviousClose    float32 `json:"previousClose"`
-	Change           float32 `json:"change"`
-	ChangePercent    float32 `json:"changePercent"`
-	IEXMarketPercent float32 `json:"iexMarketPercent"`
+	PreviousClose    float64 `json:"previousClose"`
+	Change           float64 `json:"change"`
+	ChangePercent    float64 `json:"changePercent"`
+	IEXMarketPercent float64 `json:"iexMarketPercent"`
 	IEXVolume        uint    `json:"iexVolume"`
 	AvgTotalVolume   uint    `json:"avgTotalVolume"`
-	IEXBidPrice      float32 `json:"iexBidPrice"`
+	IEXBidPrice      float64 `json:"iexBidPrice"`
 	IEXBidSize       uint    `json:"iexBidSize"`
-	IEXAskPrice      float32 `json:"iexAskPrice"`
+	IEXAskPrice      float64 `json:"iexAskPrice"`
 	IEXAskSize       uint    `json:"iexAskSize"`
 	MarketCap        uint    `json:"marketCap"`
-	PeRatio          float32 `json:"peRatio"`
-	Week52High       float32 `json:"week52High"`
-	Week52Low        float32 `json:"week52Low"`
-	YtdChange        float32 `json:"ytdChange"`
+	PeRatio          float64 `json:"peRatio"`
+	Week52High       float64 `json:"week52High"`
+	Week52Low        float64 `json:"week52Low"`
+	YtdChange        float64 `json:"ytdChange"`
 }
 
 func (mb *IEXMarketBatch) Fetch(config IEXRequest) error {
