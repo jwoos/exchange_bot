@@ -15,7 +15,7 @@ var commandsLogger = initializeLogger("commands")
 var commandMap = map[string]func(*Server, *User, []string) (string, error){
 	"help": helpCommand,
 	"price": priceCommand,
-	"quote": quoteCommand,
+	//"quote": quoteCommand,
 	"balance": balanceCommand,
 }
 

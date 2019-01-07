@@ -7,6 +7,9 @@ import (
 )
 
 
+var serverLogger = initializeLogger("server")
+
+
 type Server struct {
 	router *mux.Router
 	client *slack.Client
@@ -24,6 +27,11 @@ func newServer() *Server {
 		token: token,
 		client: slack.New(token.api),
 		users: make(map[string]*User),
+	}
+
+	_, err := server.client.AuthTest()
+	if err != nil {
+		serverLogger.Fatalf("Failed to authenticate: %v", err)
 	}
 
 	return server

@@ -2,7 +2,6 @@ package main
 
 
 import (
-	"fmt"
 	"io/ioutil"
 	"encoding/json"
 	"net/http"
@@ -29,25 +28,48 @@ func urlVerificationEvent(s *Server, w http.ResponseWriter, buffer []byte) {
 }
 
 func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPIInnerEvent) {
-	if event.Data.(type) != *slackevents.AppMentionEvent ||
-	events.Data.(type) != *slackevents.MessageEvent {
-		// TODO error here
+	var slackUser string
+	var slackChannel string
+	var slackText string
+
+	switch event.Type {
+	case slackevents.AppMention:
+		ev := event.Data.(*slackevents.AppMentionEvent)
+
+		slackUser = ev.User
+		slackChannel = ev.Channel
+		slackText = ev.Text
+	case slackevents.Message:
+		ev := event.Data.(*slackevents.MessageEvent)
+
+		slackUser = ev.User
+		slackChannel = ev.Channel
+		slackText = ev.Text
+	default:
+		// Error here
 	}
 
-	user := getOrCreateUser(s.users, ev.User)
+	user := getOrCreateUser(s.users, slackUser)
 
 	// TODO check for format
 	// Normalize to lowercase
-	command := strings.Split(strings.ToLower(ev.Text), " ")[1:]
+	command := strings.Split(strings.ToLower(slackText), " ")[1:]
 
 	fn, okay := commandMap[command[0]]
 	if !okay {
 		response, _ := errorCommand(s, user, command)
-		s.client.PostMessage(
-			ev.Channel,
+		_, _, err := s.client.PostMessage(
+			slackChannel,
 			response,
 			slack.PostMessageParameters{},
 		)
+
+		if err != nil {
+			routeEventsLogger.Errorf("Failed sending message: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		w.WriteHeader(http.StatusOK)
 		return
 	}
@@ -59,12 +81,12 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 	}
 
 	_, _, err = s.client.PostMessage(
-		ev.Channel,
+		slackChannel,
 		response,
 		slack.PostMessageParameters{},
 	)
 	if err != nil {
-		routeEventsLogger.Errorf("error posting message: %v", err)
+		routeEventsLogger.Errorf("Failed sending message: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -83,8 +105,6 @@ func (s *Server) handleEvents() http.HandlerFunc {
 		}
 
 		body := string(buffer)
-
-		routeEventsLogger.Debugf("body: %s", body)
 
 		event, err := slackevents.ParseEvent(
 			json.RawMessage(body),
