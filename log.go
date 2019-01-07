@@ -21,5 +21,8 @@ func initializeLogger(name string) *logging.Logger {
 		initialized = true
 	}
 
-	return logging.MustGetLogger(name)
+	logger :=  logging.MustGetLogger(name)
+	logging.SetLevel(LOG_LEVEL, name)
+
+	return logger
 }
