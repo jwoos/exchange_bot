@@ -39,7 +39,7 @@ func errorCommand(s *Server, u *User, cmd []string) (string, error) {
 	builder.WriteString(
 		fmt.Sprintf("Invalid command: %s\n", strings.Join(cmd, " ")),
 	)
-	builder.WriteString("Look below for a valid command \n================\n")
+	builder.WriteString("Look below for a valid command \n===============\n")
 	helpDialog, _ := helpCommand(s, u, cmd)
 	builder.WriteString(helpDialog)
 

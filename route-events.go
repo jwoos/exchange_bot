@@ -30,7 +30,7 @@ func urlVerificationEvent(s *Server, w http.ResponseWriter, buffer []byte) {
 func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPIInnerEvent) {
 	var slackUser string
 	var slackChannel string
-	var slackText string
+	var command []string
 
 	switch event.Type {
 	case slackevents.AppMention:
@@ -38,7 +38,8 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 
 		slackUser = ev.User
 		slackChannel = ev.Channel
-		slackText = ev.Text
+		command = strings.Split(strings.ToLower(ev.Text), " ")[1:]
+
 	case slackevents.Message:
 		ev := event.Data.(*slackevents.MessageEvent)
 
@@ -50,16 +51,31 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 
 		slackUser = ev.User
 		slackChannel = ev.Channel
-		slackText = ev.Text
+		command = strings.Split(strings.ToLower(ev.Text), " ")
+
 	default:
 		// Error here
 	}
 
-	user := getOrCreateUser(s.users, slackUser)
+	if len(command) == 0 {
+		response, _ := errorCommand(s, nil, command)
+		_, _, err := s.client.PostMessage(
+			slackChannel,
+			response,
+			slack.PostMessageParameters{},
+		)
 
-	// TODO check for format
-	// Normalize to lowercase
-	command := strings.Split(strings.ToLower(slackText), " ")[1:]
+		if err != nil {
+			routeEventsLogger.Errorf("Failed sending message: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	user := getOrCreateUser(s.users, slackUser)
 
 	fn, okay := commandMap[command[0]]
 	if !okay {
