@@ -42,6 +42,12 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 	case slackevents.Message:
 		ev := event.Data.(*slackevents.MessageEvent)
 
+		// if the message is the one the bot sent, just ignore it
+		if ev.BotID != "" {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		slackUser = ev.User
 		slackChannel = ev.Channel
 		slackText = ev.Text
@@ -105,6 +111,8 @@ func (s *Server) handleEvents() http.HandlerFunc {
 		}
 
 		body := string(buffer)
+
+		routeEventsLogger.Infof("Received request: %v", body)
 
 		event, err := slackevents.ParseEvent(
 			json.RawMessage(body),

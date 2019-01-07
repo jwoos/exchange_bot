@@ -15,6 +15,7 @@ type Server struct {
 	client *slack.Client
 	token *Token
 	users map[string]*User
+	context *slack.AuthTestResponse
 }
 
 
@@ -22,16 +23,19 @@ func newServer() *Server {
 	// get token
 	token := newToken()
 
+	client := slack.New(token.api)
+
+	context, err := client.AuthTest()
+	if err != nil {
+		serverLogger.Fatalf("Failed to authenticate: %v", err)
+	}
+
 	server := &Server{
 		router: mux.NewRouter().StrictSlash(true),
 		token: token,
-		client: slack.New(token.api),
+		client: client,
 		users: make(map[string]*User),
-	}
-
-	_, err := server.client.AuthTest()
-	if err != nil {
-		serverLogger.Fatalf("Failed to authenticate: %v", err)
+		context: context,
 	}
 
 	return server
