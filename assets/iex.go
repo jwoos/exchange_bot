@@ -16,10 +16,10 @@ type IEXRequest struct {
 
 
 type IEXMarketBatch struct {
-	Batch map[string]*IEXMarketBatchTypes
+	Batch map[string]*IEXMarketBatchType
 }
 
-type IEXMarketBatchTypes struct {
+type IEXMarketBatchType struct {
 	Quote *IEXQuote  `json:"quote,omitempty"`
 	Price *float64 `json:"price,omitempty"`
 }
