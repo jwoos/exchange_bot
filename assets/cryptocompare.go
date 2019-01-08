@@ -19,11 +19,6 @@ type CCMulti struct {
 	Batch map[string]map[string]float64
 }
 
-type CCMUltiType struct {
-	Name string
-	Prices map[string]float64
-}
-
 
 func (multi *CCMulti) Fetch(config CCRequest) error {
 	req, err := http.NewRequest("GET", CRYPTOCOMPARE_API_BASE, nil)
