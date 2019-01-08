@@ -28,7 +28,7 @@ func urlVerificationEvent(s *Server, w http.ResponseWriter, buffer []byte) {
 }
 
 func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPIInnerEvent) {
-	var slackUser string
+	var slackUserID string
 	var slackChannel string
 	var command []string
 
@@ -36,7 +36,7 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 	case slackevents.AppMention:
 		ev := event.Data.(*slackevents.AppMentionEvent)
 
-		slackUser = ev.User
+		slackUserID = ev.User
 		slackChannel = ev.Channel
 		command = strings.Split(strings.ToLower(ev.Text), " ")[1:]
 
@@ -45,11 +45,11 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 
 		// if the message is the one the bot sent, just ignore it
 		if ev.BotID != "" {
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusOK)
 			return
 		}
 
-		slackUser = ev.User
+		slackUserID = ev.User
 		slackChannel = ev.Channel
 		command = strings.Split(strings.ToLower(ev.Text), " ")
 
@@ -75,7 +75,21 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 		return
 	}
 
-	user := getOrCreateUser(s.users, slackUser)
+	user, err := s.getOrCreateUser(slackUserID)
+	if err != nil {
+		_, _, err := s.client.PostMessage(
+			slackChannel,
+			"Unable to fetch information from Slack at this time, please try again later",
+			slack.PostMessageParameters{},
+		)
+		if err != nil {
+			routeEventsLogger.Errorf("Failed sending message: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}
 
 	fn, okay := commandMap[command[0]]
 	if !okay {

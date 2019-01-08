@@ -40,3 +40,22 @@ func newServer() *Server {
 
 	return server
 }
+
+
+func (s *Server) getOrCreateUser(id string) (*User, error) {
+	user, ok := s.users[id]
+	if !ok {
+		slackUser, err := s.client.GetUserInfo(id)
+		if err != nil {
+			serverLogger.Errorf("Failed to fetch information for user %s: %v", id, err)
+			return nil, err
+		}
+
+		user = newUser(slackUser)
+		s.users[id] = user
+
+		serverLogger.Infof("User created: %v", user)
+	}
+
+	return user, nil
+}

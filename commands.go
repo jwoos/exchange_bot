@@ -17,6 +17,7 @@ var commandMap = map[string]func(*Server, *User, []string) (string, error){
 	"price": priceCommand,
 	//"quote": quoteCommand,
 	"balance": balanceCommand,
+	//"leaderboard": leaderboardCommand,
 }
 
 var helpMap = map[string]string{
@@ -112,7 +113,7 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
 		builder.WriteString("Invalid option, please give one of s[tock] or c[rypto]")
 	}
 
-	return builder.String(), err
+	return builder.String(), nil
 }
 
 /*
@@ -171,6 +172,17 @@ func balanceCommand(s *Server, u *User, cmd []string) (string, error) {
 	balance := fmt.Sprintf("%d", u.money)
 	return balance, nil
 }
+
+/*
+ *func leaderboardCommand(s *Server, u *User, cmd []string) (string, error) {
+ *    builder := strings.Builder{}
+ *
+ *    for k, v := range s.users {
+ *    }
+ *
+ *    return builder.String(), nil
+ *}
+ */
 
 /*
  *func portfolioCommand(s *Server, u *User, cmd []string) (string, error) {

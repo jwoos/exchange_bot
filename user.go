@@ -1,30 +1,26 @@
 package main
 
 
+import (
+	"github.com/nlopes/slack"
+)
+
+
 type User struct {
 	id string
+	slackUser *slack.User
 	money int
 	portfolio *Portfolio
 }
 
 
-func newUser(id string) *User {
+func newUser(slackUser *slack.User) *User {
 	user := &User{
-		id: id,
+		id: slackUser.ID,
+		slackUser: slackUser,
 		money: CONFIG_MONEY_BEGIN,
 		portfolio: newPortfolio(),
 	}
 
 	return user
-}
-
-func getOrCreateUser(users map[string]*User, id string) *User {
-	val, ok := users[id]
-	if !ok {
-		user := newUser(id)
-		users[id] = user
-		val = user
-	}
-
-	return val
 }
