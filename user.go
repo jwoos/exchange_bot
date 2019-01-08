@@ -9,7 +9,7 @@ import (
 type User struct {
 	id string
 	slackUser *slack.User
-	money int
+	balance float64
 	portfolio *Portfolio
 }
 
@@ -18,7 +18,7 @@ func newUser(slackUser *slack.User) *User {
 	user := &User{
 		id: slackUser.ID,
 		slackUser: slackUser,
-		money: CONFIG_MONEY_BEGIN,
+		balance: CONFIG_MONEY_BEGIN,
 		portfolio: newPortfolio(),
 	}
 

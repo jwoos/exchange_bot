@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/jwoos/slack_exchange/assets"
@@ -17,7 +18,7 @@ var commandMap = map[string]func(*Server, *User, []string) (string, error){
 	"price": priceCommand,
 	//"quote": quoteCommand,
 	"balance": balanceCommand,
-	//"leaderboard": leaderboardCommand,
+	"leaderboard": leaderboardCommand,
 }
 
 var helpMap = map[string]string{
@@ -169,20 +170,33 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
  */
 
 func balanceCommand(s *Server, u *User, cmd []string) (string, error) {
-	balance := fmt.Sprintf("%d", u.money)
+	balance := fmt.Sprintf("%.2f", u.balance)
 	return balance, nil
 }
 
-/*
- *func leaderboardCommand(s *Server, u *User, cmd []string) (string, error) {
- *    builder := strings.Builder{}
- *
- *    for k, v := range s.users {
- *    }
- *
- *    return builder.String(), nil
- *}
- */
+func leaderboardCommand(s *Server, u *User, cmd []string) (string, error) {
+	builder := strings.Builder{}
+
+	users := make([]*User, len(s.users))
+
+	index := 0
+	for _, v := range s.users {
+		users[index] = v
+		index++
+	}
+
+	sort.Slice(users, func(i int, j int) bool {
+		return users[i].balance > users[j].balance
+	})
+
+	builder.WriteString("*Leaderboard*\n")
+
+	for i, user := range users {
+		builder.WriteString(fmt.Sprintf("%d - %s (%s): %.2f\n", i, user.slackUser.Name, user.slackUser.RealName, user.balance))
+	}
+
+	return builder.String(), nil
+}
 
 /*
  *func portfolioCommand(s *Server, u *User, cmd []string) (string, error) {

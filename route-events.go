@@ -62,7 +62,9 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 		_, _, err := s.client.PostMessage(
 			slackChannel,
 			response,
-			slack.PostMessageParameters{},
+			slack.PostMessageParameters{
+				Markdown: true,
+			},
 		)
 
 		if err != nil {
@@ -80,7 +82,9 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 		_, _, err := s.client.PostMessage(
 			slackChannel,
 			"Unable to fetch information from Slack at this time, please try again later",
-			slack.PostMessageParameters{},
+			slack.PostMessageParameters{
+				Markdown: true,
+			},
 		)
 		if err != nil {
 			routeEventsLogger.Errorf("Failed sending message: %v", err)
@@ -97,7 +101,9 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 		_, _, err := s.client.PostMessage(
 			slackChannel,
 			response,
-			slack.PostMessageParameters{},
+			slack.PostMessageParameters{
+				Markdown: true,
+			},
 		)
 
 		if err != nil {
@@ -119,7 +125,9 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 	_, _, err = s.client.PostMessage(
 		slackChannel,
 		response,
-		slack.PostMessageParameters{},
+		slack.PostMessageParameters{
+			Markdown: true,
+		},
 	)
 	if err != nil {
 		routeEventsLogger.Errorf("Failed sending message: %v", err)
