@@ -17,8 +17,13 @@ var commandMap = map[string]func(*Server, *User, []string) (string, error){
 	"help": helpCommand,
 	"price": priceCommand,
 	//"quote": quoteCommand,
+	//"buy": buyCommand,
+	//"sell": sellCommand,
 	"balance": balanceCommand,
+	"portfolio": portfolioCommand,
 	"leaderboard": leaderboardCommand,
+	//"greet": greatCommand,
+	//"meme": memeCommand
 }
 
 var helpMap = map[string]string{
@@ -198,21 +203,19 @@ func leaderboardCommand(s *Server, u *User, cmd []string) (string, error) {
 	return builder.String(), nil
 }
 
-/*
- *func portfolioCommand(s *Server, u *User, cmd []string) (string, error) {
- *    builder := strings.Builder{}
- *
- *    portfolio := u.portfolio
- *
- *    stock := portfolio.stock
- *    builder.WriteString("Stock\n")
- *    for symbol, assets := range stock {
- *        for asset := range assets {
- *
- *        }
- *    }
- *    cryptocurrency := portfolio.cryptocurrency
- *
- *    return builder.String(), nil
- *}
- */
+func portfolioCommand(s *Server, u *User, cmd []string) (string, error) {
+	builder := strings.Builder{}
+
+	portfolio := u.portfolio
+
+	stock := portfolio.stock
+	builder.WriteString("Stock\n")
+	for symbol, assets := range stock {
+		for asset := range assets {
+
+		}
+	}
+	cryptocurrency := portfolio.cryptocurrency
+
+	return builder.String(), nil
+}
