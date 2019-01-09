@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/jwoos/slack_exchange/assets"
@@ -14,7 +16,7 @@ var commandMap = map[string]func(*Server, *User, []string) (string, error){
 	"help":  helpCommand,
 	"price": priceCommand,
 	//"quote": quoteCommand,
-	//"buy": buyCommand,
+	"buy": buyCommand,
 	//"sell": sellCommand,
 	"balance":     balanceCommand,
 	"portfolio":   portfolioCommand,
@@ -170,6 +172,87 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
  *}
  */
 
+ func buyCommand(s *Server, u *User, cmd []string) (string, error) {
+	builder := strings.Builder{}
+
+	symbol := strings.ToUpper(cmd[2])
+	count, err := (strconv.ParseFloat(cmd[3], 64))
+	if err != nil {
+		return "Couldn't parse amount as a number", nil
+	}
+
+	switch cmd[1] {
+	case "s":
+		fallthrough
+	case "stock":
+		count = math.Floor(count)
+
+		iex := assets.IEXMarketBatch{}
+		err = iex.Fetch(assets.IEXRequest{
+			Information: []string{"price"},
+			Symbols:     []string{symbol},
+		})
+		if err != nil {
+			commandsLogger.Errorf("error fetching stock price: %v", err)
+			return "Error fetching prices - try again later", err
+		}
+
+		to, okay := iex.Batch[symbol]
+		if !okay {
+			return fmt.Sprintf("Symbol %s was not found", symbol), nil
+		}
+
+		total := *to.Price * count
+		if total > u.balance {
+			return fmt.Sprintf("You request to buy %.2f but you have %.2f", u.balance, total), nil
+		}
+
+		u.balance -= total
+
+		u.portfolio.appendStock(newAsset(symbol, *to.Price, count))
+		builder.WriteString(fmt.Sprintf("Bought %.2f of %s @ %.2f\n", count, symbol, *to.Price))
+
+	case "c":
+		fallthrough
+	case "crypto":
+		cc := assets.CCMulti{}
+		err = cc.Fetch(assets.CCRequest{
+			FromSymbols: []string{symbol},
+			ToSymbols:   []string{"USD"},
+		})
+		if err != nil {
+			commandsLogger.Errorf("error fetching crypto price: %v", err)
+			return "Error fetching prices - try again later", err
+		}
+
+		to, okay := cc.Batch[symbol]
+		if !okay {
+			return fmt.Sprintf("Symbol %s was not found", symbol), nil
+		}
+
+		total := to["USD"] * count
+		if total > u.balance {
+			return fmt.Sprintf("You request to buy %.2f but you have %.2f", u.balance, total), nil
+		}
+
+		u.balance -= total
+
+		u.portfolio.appendStock(newAsset(symbol, to["USD"], count))
+		builder.WriteString(fmt.Sprintf("Bought %.2f of %s @ %.2f\n", count, symbol, to["USD"]))
+
+	default:
+		builder.WriteString("Invalid option, please give one of s[tock] or c[rypto]")
+	}
+
+	return builder.String(), nil
+ }
+
+/*
+ * func sellCommand(s *Server, u *User, cmd []string) (string, error) {
+ *
+ * }
+ */
+
 func balanceCommand(s *Server, u *User, cmd []string) (string, error) {
 	balance := fmt.Sprintf("%.2f", u.balance)
 	return balance, nil
@@ -208,7 +291,7 @@ func portfolioCommand(s *Server, u *User, cmd []string) (string, error) {
 	for symbol, assets := range portfolio.stock {
 		builder.WriteString(fmt.Sprintf("_%s_\n", symbol))
 		for _, asset := range assets {
-			builder.WriteString(fmt.Sprintf("%d @ %f\n", asset.count, asset.price))
+			builder.WriteString(fmt.Sprintf("%.0f @ %f\n", asset.count, asset.price))
 		}
 		builder.WriteString("\n")
 	}
@@ -218,7 +301,7 @@ func portfolioCommand(s *Server, u *User, cmd []string) (string, error) {
 	for symbol, assets := range portfolio.cryptocurrency {
 		builder.WriteString(fmt.Sprintf("_%s_\n", symbol))
 		for _, asset := range assets {
-			builder.WriteString(fmt.Sprintf("%d @ %f\n", asset.count, asset.price))
+			builder.WriteString(fmt.Sprintf("%.0f @ %f\n", asset.count, asset.price))
 		}
 		builder.WriteString("\n")
 	}

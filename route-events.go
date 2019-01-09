@@ -115,7 +115,23 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 
 	response, err := fn(s, user, command)
 	if err != nil {
-		w.WriteHeader(http.StatusOK)
+		if response != "" {
+			_, _, err := s.client.PostMessage(
+				slackChannel,
+				response,
+				slack.PostMessageParameters{
+					Markdown: true,
+				},
+			)
+
+			if err != nil {
+				routeEventsLogger.Errorf("Failed sending message: %v", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			w.WriteHeader(http.StatusOK)
+		}
 		return
 	}
 

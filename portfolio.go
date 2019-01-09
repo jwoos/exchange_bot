@@ -7,15 +7,15 @@ const (
 
 type Asset struct {
 	price float64
-	count uint
-	class uint
+	symbol string
+	count float64
 }
 
-func newAsset(price float64, count uint, class uint) *Asset {
+func newAsset(symbol string, price float64, count float64) *Asset {
 	asset := &Asset{
+		symbol: symbol,
 		price: price,
 		count: count,
-		class: class,
 	}
 
 	return asset
@@ -33,4 +33,16 @@ func newPortfolio() *Portfolio {
 	}
 
 	return portfolio
+}
+
+func (p *Portfolio) appendStock(assets ...*Asset) {
+	for _, asset := range assets {
+		p.stock[asset.symbol] = append(p.stock[asset.symbol], asset)
+	}
+}
+
+func (p *Portfolio) appendCrypto(assets ...*Asset) {
+	for _, asset := range assets {
+		p.cryptocurrency[asset.symbol] = append(p.cryptocurrency[asset.symbol], asset)
+	}
 }
