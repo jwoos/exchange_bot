@@ -181,6 +181,8 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
 		return "Couldn't parse amount as a number", nil
 	}
 
+	var price float64
+
 	switch cmd[1] {
 	case "s":
 		fallthrough
@@ -202,15 +204,7 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
 			return fmt.Sprintf("Symbol %s was not found", symbol), nil
 		}
 
-		total := *to.Price * count
-		if total > u.balance {
-			return fmt.Sprintf("You request to buy %.2f but you have %.2f", u.balance, total), nil
-		}
-
-		u.balance -= total
-
-		u.portfolio.appendStock(newAsset(symbol, *to.Price, count))
-		builder.WriteString(fmt.Sprintf("Bought %.2f of %s @ %.2f\n", count, symbol, *to.Price))
+		price = *to.Price
 
 	case "c":
 		fallthrough
@@ -230,19 +224,21 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
 			return fmt.Sprintf("Symbol %s was not found", symbol), nil
 		}
 
-		total := to["USD"] * count
-		if total > u.balance {
-			return fmt.Sprintf("You request to buy %.2f but you have %.2f", u.balance, total), nil
-		}
-
-		u.balance -= total
-
-		u.portfolio.appendStock(newAsset(symbol, to["USD"], count))
-		builder.WriteString(fmt.Sprintf("Bought %.2f of %s @ %.2f\n", count, symbol, to["USD"]))
+		price = to["USD"]
 
 	default:
 		builder.WriteString("Invalid option, please give one of s[tock] or c[rypto]")
 	}
+
+	total := price * count
+	if total > u.balance {
+		return fmt.Sprintf("You request to buy %.2f but you have %.2f", u.balance, total), nil
+	}
+
+	u.balance -= total
+
+	u.portfolio.appendStock(newAsset(symbol, price, count))
+	builder.WriteString(fmt.Sprintf("Bought %.2f of %s @ %.2f\n", count, symbol, price))
 
 	return builder.String(), nil
  }
