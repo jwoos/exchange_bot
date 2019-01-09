@@ -8,13 +8,13 @@ const (
 
 
 type Asset struct {
-	price uint
+	price float64
 	count uint
 	class uint
 }
 
 
-func newAsset(price uint, count uint, class uint) *Asset {
+func newAsset(price float64, count uint, class uint) *Asset {
 	asset := &Asset{
 		price: price,
 		count: count,

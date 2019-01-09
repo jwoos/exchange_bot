@@ -208,14 +208,25 @@ func portfolioCommand(s *Server, u *User, cmd []string) (string, error) {
 
 	portfolio := u.portfolio
 
-	stock := portfolio.stock
-	builder.WriteString("Stock\n")
-	for symbol, assets := range stock {
-		for asset := range assets {
-
+	builder.WriteString("*Stock*\n")
+	for symbol, assets := range portfolio.stock {
+		builder.WriteString(fmt.Sprintf("_%s_\n", symbol))
+		for _, asset := range assets {
+			builder.WriteString(fmt.Sprintf("%d @ %f\n", asset.count, asset.price))
 		}
+		builder.WriteString("\n")
 	}
-	cryptocurrency := portfolio.cryptocurrency
+	builder.WriteString("\n")
+
+	builder.WriteString("*Cryptocurrency*\n")
+	for symbol, assets := range portfolio.cryptocurrency {
+		builder.WriteString(fmt.Sprintf("_%s_\n", symbol))
+		for _, asset := range assets {
+			builder.WriteString(fmt.Sprintf("%d @ %f\n", asset.count, asset.price))
+		}
+		builder.WriteString("\n")
+	}
+	builder.WriteString("\n")
 
 	return builder.String(), nil
 }
