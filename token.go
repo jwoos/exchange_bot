@@ -1,20 +1,16 @@
 package main
 
-
 import (
 	"os"
 )
 
-
 var tokenLogger = initializeLogger("token")
 
-
 type Token struct {
-	api string
-	signing string
+	api          string
+	signing      string
 	verification string
 }
-
 
 func newToken() *Token {
 	apiToken := os.Getenv("SLACK_EXCHANGE_API_TOKEN")
@@ -38,8 +34,8 @@ func newToken() *Token {
 	}
 
 	token := &Token{
-		api: apiToken,
-		signing: signingToken,
+		api:          apiToken,
+		signing:      signingToken,
 		verification: verificationToken,
 	}
 

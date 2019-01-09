@@ -1,9 +1,8 @@
 package main
 
-
 import (
-	"io/ioutil"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -11,9 +10,7 @@ import (
 	"github.com/nlopes/slack/slackevents"
 )
 
-
 var routeEventsLogger = initializeLogger("route-events")
-
 
 func urlVerificationEvent(s *Server, w http.ResponseWriter, buffer []byte) {
 	var request slackevents.ChallengeResponse

@@ -1,6 +1,5 @@
 package main
 
-
 import (
 	"fmt"
 	"sort"
@@ -9,36 +8,33 @@ import (
 	"github.com/jwoos/slack_exchange/assets"
 )
 
-
 var commandsLogger = initializeLogger("commands")
 
-
 var commandMap = map[string]func(*Server, *User, []string) (string, error){
-	"help": helpCommand,
+	"help":  helpCommand,
 	"price": priceCommand,
 	//"quote": quoteCommand,
 	//"buy": buyCommand,
 	//"sell": sellCommand,
-	"balance": balanceCommand,
-	"portfolio": portfolioCommand,
+	"balance":     balanceCommand,
+	"portfolio":   portfolioCommand,
 	"leaderboard": leaderboardCommand,
 	//"greet": greatCommand,
 	//"meme": memeCommand
 }
 
 var helpMap = map[string]string{
-	"help" : "View this dialog",
-	"price (c[rypto|s[tock]) <symbol> ...": "Get price for <symbol>",
-	"quote (c[rypto|s[tock]) <symbol> ...": "Get quote for <symbol>",
-	"buy (c[rypto|s[tock]) <symbol> <amount>": "Buy <amount> of <symbol>",
+	"help":                                      "View this dialog",
+	"price (c[rypto|s[tock]) <symbol> ...":      "Get price for <symbol>",
+	"quote (c[rypto|s[tock]) <symbol> ...":      "Get quote for <symbol>",
+	"buy (c[rypto|s[tock]) <symbol> <amount>":   "Buy <amount> of <symbol>",
 	"sell (c[rypto]|s[tock]) <symbol> <amount>": "Sell <amount> of <symbol>",
-	"balance": "View your available balance",
-	"portfolio": "View your portfolio",
+	"balance":     "View your available balance",
+	"portfolio":   "View your portfolio",
 	"leaderboard": "View the leaderboard",
-	"greet": "Return a greeting",
-	"meme": "Post a meme",
+	"greet":       "Return a greeting",
+	"meme":        "Post a meme",
 }
-
 
 func errorCommand(s *Server, u *User, cmd []string) (string, error) {
 	builder := strings.Builder{}
@@ -88,7 +84,7 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
 		iex := assets.IEXMarketBatch{}
 		err = iex.Fetch(assets.IEXRequest{
 			Information: []string{"price"},
-			Symbols: symbols,
+			Symbols:     symbols,
 		})
 		if err != nil {
 			commandsLogger.Errorf("error fetching stock price: %v", err)
@@ -104,7 +100,7 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
 		cc := assets.CCMulti{}
 		err = cc.Fetch(assets.CCRequest{
 			FromSymbols: symbols,
-			ToSymbols: []string{"USD"},
+			ToSymbols:   []string{"USD"},
 		})
 		if err != nil {
 			commandsLogger.Errorf("error fetching crypto price: %v", err)

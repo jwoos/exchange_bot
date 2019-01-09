@@ -1,10 +1,8 @@
 package main
 
-
 import (
 	"net/http"
 )
-
 
 func (s *Server) handleStatus() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

@@ -1,23 +1,19 @@
 package main
 
-
 import (
 	"github.com/gorilla/mux"
 	"github.com/nlopes/slack"
 )
 
-
 var serverLogger = initializeLogger("server")
 
-
 type Server struct {
-	router *mux.Router
-	client *slack.Client
-	token *Token
-	users map[string]*User
+	router  *mux.Router
+	client  *slack.Client
+	token   *Token
+	users   map[string]*User
 	context *slack.AuthTestResponse
 }
-
 
 func newServer() *Server {
 	// get token
@@ -31,16 +27,15 @@ func newServer() *Server {
 	}
 
 	server := &Server{
-		router: mux.NewRouter().StrictSlash(true),
-		token: token,
-		client: client,
-		users: make(map[string]*User),
+		router:  mux.NewRouter().StrictSlash(true),
+		token:   token,
+		client:  client,
+		users:   make(map[string]*User),
 		context: context,
 	}
 
 	return server
 }
-
 
 func (s *Server) getOrCreateUser(id string) (*User, error) {
 	user, ok := s.users[id]

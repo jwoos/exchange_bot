@@ -1,6 +1,5 @@
 package main
 
-
 import (
 	"os"
 
@@ -8,7 +7,6 @@ import (
 )
 
 var initialized = false
-
 
 func initializeLogger(name string) *logging.Logger {
 	if !initialized {
@@ -21,7 +19,7 @@ func initializeLogger(name string) *logging.Logger {
 		initialized = true
 	}
 
-	logger :=  logging.MustGetLogger(name)
+	logger := logging.MustGetLogger(name)
 	logging.SetLevel(LOG_LEVEL, name)
 
 	return logger

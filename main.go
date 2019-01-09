@@ -1,14 +1,11 @@
 package main
 
-
 import (
 	"fmt"
 	"net/http"
 )
 
-
 var mainLogger = initializeLogger("main")
-
 
 func main() {
 	// set up server
