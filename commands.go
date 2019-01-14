@@ -372,10 +372,11 @@ func leaderboardCommand(s *Server, u *User, cmd []string) (string, error) {
 func portfolioCommand(s *Server, u *User, cmd []string) (string, error) {
 	builder := strings.Builder{}
 
-	portfolio := u.portfolio
+	builder.WriteString("*Balance*\n")
+	builder.WriteString(fmt.Sprintf("%.2f", u.balance))
 
 	builder.WriteString("*Stock*\n")
-	for symbol, assets := range portfolio.stock {
+	for symbol, assets := range u.portfolio.stock {
 		builder.WriteString(fmt.Sprintf("_%s_\n", symbol))
 		for _, asset := range assets {
 			builder.WriteString(fmt.Sprintf("%.0f @ %f\n", asset.count, asset.price))
@@ -385,7 +386,7 @@ func portfolioCommand(s *Server, u *User, cmd []string) (string, error) {
 	builder.WriteString("\n")
 
 	builder.WriteString("*Cryptocurrency*\n")
-	for symbol, assets := range portfolio.cryptocurrency {
+	for symbol, assets := range u.portfolio.cryptocurrency {
 		builder.WriteString(fmt.Sprintf("_%s_\n", symbol))
 		for _, asset := range assets {
 			builder.WriteString(fmt.Sprintf("%.0f @ %f\n", asset.count, asset.price))
