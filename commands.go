@@ -75,6 +75,10 @@ func helpCommand(s *Server, u *User, cmd []string) (string, error) {
 func priceCommand(s *Server, u *User, cmd []string) (string, error) {
 	builder := strings.Builder{}
 
+	if len(cmd) < 3 {
+		return "Invalid number of arguments - look at help", nil
+	}
+
 	symbols := make([]string, len(cmd[2:]))
 	for i, sym := range cmd[2:] {
 		symbols[i] = strings.ToUpper(sym)
@@ -176,6 +180,10 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
 
  func buyCommand(s *Server, u *User, cmd []string) (string, error) {
 	builder := strings.Builder{}
+
+	if len(cmd) != 4 {
+		return "Invalid number of arguments - look at help", nil
+	}
 
 	symbol := strings.ToUpper(cmd[2])
 	count, err := (strconv.ParseFloat(cmd[3], 64))
@@ -372,8 +380,7 @@ func leaderboardCommand(s *Server, u *User, cmd []string) (string, error) {
 func portfolioCommand(s *Server, u *User, cmd []string) (string, error) {
 	builder := strings.Builder{}
 
-	builder.WriteString("*Balance*\n")
-	builder.WriteString(fmt.Sprintf("%.2f", u.balance))
+	builder.WriteString(fmt.Sprintf("*Balance*\n%.2f\n", u.balance))
 
 	builder.WriteString("*Stock*\n")
 	for symbol, assets := range u.portfolio.stock {
