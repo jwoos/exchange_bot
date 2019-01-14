@@ -52,11 +52,11 @@ func (p *Portfolio) addStock(symbol string, count float64) (float64, error) {
 func (p *Portfolio) removeStock(symbol string, count float64) (float64, error) {
 	asset, ok := p.stock[symbol]
 	if !ok {
-		return 0, &GenericError{message: fmt.Sprintf("You do not have any %s stocks", symbol)}
+		return 0, fmt.Errorf("You do not have any %s stocks", symbol)
 	}
 
 	if count > asset.count {
-		return 0, &GenericError{message: fmt.Sprintf("You have %.0f of %s stocks and are trying to sell %0.f", asset.count, symbol, count)}
+		return 0, fmt.Errorf("You have %.0f of %s stocks and are trying to sell %0.f", asset.count, symbol, count)
 	}
 
 	asset.count -= count
@@ -79,11 +79,11 @@ func (p *Portfolio) addCrypto(symbol string, count float64) (float64, error) {
 func (p *Portfolio) removeCrypto(symbol string, count float64) (float64, error) {
 	asset, ok := p.cryptocurrency[symbol]
 	if !ok {
-		return 0, &GenericError{message: fmt.Sprintf("You do not have any %s stocks", symbol)}
+		return 0, fmt.Errorf("You do not have any %s stocks", symbol)
 	}
 
 	if count > asset.count {
-		return 0, &GenericError{message: fmt.Sprintf("You have %.2f of %s cryptos and are trying to sell %2.f", asset.count, symbol, count)}
+		return 0, fmt.Errorf("You have %.2f of %s cryptos and are trying to sell %2.f", asset.count, symbol, count)
 	}
 
 	asset.count -= count

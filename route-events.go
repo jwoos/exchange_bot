@@ -18,6 +18,7 @@ func urlVerificationEvent(s *Server, w http.ResponseWriter, buffer []byte) {
 	if err != nil {
 		routeEventsLogger.Warningf("Error unmarshalling: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -52,6 +53,7 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 
 	default:
 		// Error here
+		routeEventsLogger.Errorf("Invalid event type: %v", event.Type)
 	}
 
 	if len(command) == 0 {
@@ -60,10 +62,9 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 		err := s.sendMessage(slackChannel, response)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			return
+		} else {
+			w.WriteHeader(http.StatusOK)
 		}
-
-		w.WriteHeader(http.StatusOK)
 		return
 	}
 
