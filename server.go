@@ -54,3 +54,21 @@ func (s *Server) getOrCreateUser(id string) (*User, error) {
 
 	return user, nil
 }
+
+func (s *Server) sendMessage(channel string, message string) error {
+	_, _, err := s.client.PostMessage(
+		channel,
+		message,
+		slack.PostMessageParameters{
+			Markdown: true,
+		},
+	)
+
+	if err != nil {
+		errMessage := fmt.Errorf("Failed sending message to Slack: %v", err)
+		serverLogger.Error(errMessage)
+		return errMessage
+	}
+
+	return nil
+}

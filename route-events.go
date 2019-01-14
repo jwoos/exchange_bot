@@ -56,16 +56,9 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 
 	if len(command) == 0 {
 		response, _ := errorCommand(s, nil, command)
-		_, _, err := s.client.PostMessage(
-			slackChannel,
-			response,
-			slack.PostMessageParameters{
-				Markdown: true,
-			},
-		)
 
+		err := s.sendMessage(slackChannel, response)
 		if err != nil {
-			routeEventsLogger.Errorf("Failed sending message: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -76,15 +69,8 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 
 	user, err := s.getOrCreateUser(slackUserID)
 	if err != nil {
-		_, _, err := s.client.PostMessage(
-			slackChannel,
-			"Unable to fetch information from Slack at this time, please try again later",
-			slack.PostMessageParameters{
-				Markdown: true,
-			},
-		)
+		err := s.sendMessage(slackChannel, "Unable to fetch information from Slack at this time, please try again later")
 		if err != nil {
-			routeEventsLogger.Errorf("Failed sending message: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -95,16 +81,9 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 	fn, okay := commandMap[command[0]]
 	if !okay {
 		response, _ := errorCommand(s, user, command)
-		_, _, err := s.client.PostMessage(
-			slackChannel,
-			response,
-			slack.PostMessageParameters{
-				Markdown: true,
-			},
-		)
 
+		err := s.sendMessage(slackChannel, response)
 		if err != nil {
-			routeEventsLogger.Errorf("Failed sending message: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -116,16 +95,8 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 	response, err := fn(s, user, command)
 	if err != nil {
 		if response != "" {
-			_, _, err := s.client.PostMessage(
-				slackChannel,
-				response,
-				slack.PostMessageParameters{
-					Markdown: true,
-				},
-			)
-
+			err := s.sendMessage(slackChannel, response)
 			if err != nil {
-				routeEventsLogger.Errorf("Failed sending message: %v", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -135,21 +106,13 @@ func callbackEvent(s *Server, w http.ResponseWriter, event slackevents.EventsAPI
 		return
 	}
 
-	_, _, err = s.client.PostMessage(
-		slackChannel,
-		response,
-		slack.PostMessageParameters{
-			Markdown: true,
-		},
-	)
+	s.sendMessage(slackChannel, response)
 	if err != nil {
-		routeEventsLogger.Errorf("Failed sending message: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(nil)
 }
 
 func (s *Server) handleEvents() http.HandlerFunc {
