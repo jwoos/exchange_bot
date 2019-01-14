@@ -1,20 +1,22 @@
 package main
 
+import (
+	"fmt"
+)
+
 const (
 	ASSET_CRYPTO = iota
 	ASSET_STOCK  = iota
 )
 
 type Asset struct {
-	price float64
 	symbol string
 	count float64
 }
 
-func newAsset(symbol string, price float64, count float64) *Asset {
+func newAsset(symbol string, count float64) *Asset {
 	asset := &Asset{
 		symbol: symbol,
-		price: price,
 		count: count,
 	}
 
@@ -22,27 +24,69 @@ func newAsset(symbol string, price float64, count float64) *Asset {
 }
 
 type Portfolio struct {
-	cryptocurrency map[string][]*Asset
-	stock          map[string][]*Asset
+	cryptocurrency map[string]*Asset
+	stock          map[string]*Asset
 }
 
 func newPortfolio() *Portfolio {
 	portfolio := &Portfolio{
-		cryptocurrency: make(map[string][]*Asset),
-		stock:          make(map[string][]*Asset),
+		cryptocurrency: make(map[string]*Asset),
+		stock:          make(map[string]*Asset),
 	}
 
 	return portfolio
 }
 
-func (p *Portfolio) appendStock(assets ...*Asset) {
-	for _, asset := range assets {
-		p.stock[asset.symbol] = append(p.stock[asset.symbol], asset)
+func (p *Portfolio) addStock(symbol string, count float64) (float64, error) {
+	asset, ok := p.stock[symbol]
+	if !ok {
+		asset = newAsset(symbol, count)
+		p.stock[symbol] = asset
+	} else {
+		asset.count += count
 	}
+
+	return asset.count, nil
 }
 
-func (p *Portfolio) appendCrypto(assets ...*Asset) {
-	for _, asset := range assets {
-		p.cryptocurrency[asset.symbol] = append(p.cryptocurrency[asset.symbol], asset)
+func (p *Portfolio) removeStock(symbol string, count float64) (float64, error) {
+	asset, ok := p.stock[symbol]
+	if !ok {
+		return 0, &GenericError{message: fmt.Sprintf("You do not have any %s stocks", symbol)}
 	}
+
+	if count > asset.count {
+		return 0, &GenericError{message: fmt.Sprintf("You have %.0f of %s stocks and are trying to sell %0.f", asset.count, symbol, count)}
+	}
+
+	asset.count -= count
+
+	return asset.count, nil
+}
+
+func (p *Portfolio) addCrypto(symbol string, count float64) (float64, error) {
+	asset, ok := p.cryptocurrency[symbol]
+	if !ok {
+		asset = newAsset(symbol, count)
+		p.cryptocurrency[symbol] = asset
+	} else {
+		asset.count += count
+	}
+
+	return asset.count, nil
+}
+
+func (p *Portfolio) removeCrypto(symbol string, count float64) (float64, error) {
+	asset, ok := p.cryptocurrency[symbol]
+	if !ok {
+		return 0, &GenericError{message: fmt.Sprintf("You do not have any %s stocks", symbol)}
+	}
+
+	if count > asset.count {
+		return 0, &GenericError{message: fmt.Sprintf("You have %.2f of %s cryptos and are trying to sell %2.f", asset.count, symbol, count)}
+	}
+
+	asset.count -= count
+
+	return asset.count, nil
 }
