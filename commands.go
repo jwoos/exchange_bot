@@ -95,7 +95,7 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
 		}
 
 		for sym, to := range iex.Batch {
-			builder.WriteString(fmt.Sprintf("%s: %f\n", sym, *to.Price))
+			builder.WriteString(fmt.Sprintf("%s: %.2f\n", sym, *to.Price))
 		}
 
 	case "c":
@@ -112,7 +112,7 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
 
 		for sym, to := range cc.Batch {
 			usd, _ := to["USD"]
-			builder.WriteString(fmt.Sprintf("%s: %f\n", sym, usd))
+			builder.WriteString(fmt.Sprintf("%s: %.2f\n", sym, usd))
 		}
 
 	default:
@@ -146,7 +146,7 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
  *        }
  *
  *        for sym, to := range iex.Batch {
- *            builder.WriteString(fmt.Sprintf("%s: %f\n", sym, *to.Price))
+ *            builder.WriteString(fmt.Sprintf("%s: %.2f\n", sym, *to.Price))
  *        }
  *
  *    case "c":
@@ -163,7 +163,7 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
  *
  *        for sym, to := range cc.Batch {
  *            usd, _ := to["USD"]
- *            builder.WriteString(fmt.Sprintf("%s: %f\n", sym, usd))
+ *            builder.WriteString(fmt.Sprintf("%s: %.2f\n", sym, usd))
  *        }
  *
  *    default:
@@ -379,7 +379,7 @@ func portfolioCommand(s *Server, u *User, cmd []string) (string, error) {
 	for symbol, assets := range u.portfolio.stock {
 		builder.WriteString(fmt.Sprintf("_%s_\n", symbol))
 		for _, asset := range assets {
-			builder.WriteString(fmt.Sprintf("%.0f @ %f\n", asset.count, asset.price))
+			builder.WriteString(fmt.Sprintf("%.0f @ %.2f\n", asset.count, asset.price))
 		}
 		builder.WriteString("\n")
 	}
@@ -389,7 +389,7 @@ func portfolioCommand(s *Server, u *User, cmd []string) (string, error) {
 	for symbol, assets := range u.portfolio.cryptocurrency {
 		builder.WriteString(fmt.Sprintf("_%s_\n", symbol))
 		for _, asset := range assets {
-			builder.WriteString(fmt.Sprintf("%.0f @ %f\n", asset.count, asset.price))
+			builder.WriteString(fmt.Sprintf("%.0f @ %.2f\n", asset.count, asset.price))
 		}
 		builder.WriteString("\n")
 	}
