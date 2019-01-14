@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/jwoos/slack_exchange/assets"
+
+	"github.com/nlopes/slack"
 )
 
 var commandsLogger = initializeLogger("commands")
@@ -182,11 +184,14 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
 	}
 
 	var price float64
+	var stock bool
 
 	switch cmd[1] {
 	case "s":
 		fallthrough
 	case "stock":
+		stock = true
+
 		count = math.Floor(count)
 
 		iex := assets.IEXMarketBatch{}
@@ -209,6 +214,8 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
 	case "c":
 		fallthrough
 	case "crypto":
+		stock = false
+
 		cc := assets.CCMulti{}
 		err = cc.Fetch(assets.CCRequest{
 			FromSymbols: []string{symbol},
@@ -228,6 +235,7 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
 
 	default:
 		builder.WriteString("Invalid option, please give one of s[tock] or c[rypto]")
+		return builder.String(), nil
 	}
 
 	total := price * count
@@ -237,7 +245,11 @@ func priceCommand(s *Server, u *User, cmd []string) (string, error) {
 
 	u.balance -= total
 
-	u.portfolio.appendStock(newAsset(symbol, price, count))
+	if (stock) {
+		u.portfolio.appendStock(newAsset(symbol, price, count))
+	} else {
+		u.portfolio.appendCrypto(newAsset(symbol, price, count))
+	}
 	builder.WriteString(fmt.Sprintf("Bought %.2f of %s @ %.2f\n", count, symbol, price))
 
 	return builder.String(), nil
@@ -257,22 +269,101 @@ func balanceCommand(s *Server, u *User, cmd []string) (string, error) {
 func leaderboardCommand(s *Server, u *User, cmd []string) (string, error) {
 	builder := strings.Builder{}
 
-	users := make([]*User, len(s.users))
+	stockCache := make(map[string]float64)
+	cryptoCache := make(map[string]float64)
 
-	index := 0
-	for _, v := range s.users {
-		users[index] = v
+	// get all symbols
+	for _, user := range s.users {
+		for k, _ := range user.portfolio.stock {
+			stockCache[k] = 0
+		}
+
+		for k, _ := range user.portfolio.cryptocurrency {
+			cryptoCache[k] = 0
+		}
+	}
+
+	var err error
+	var index uint
+
+	stockKeys := make([]string, len(stockCache))
+	index = 0
+	for k, _ := range stockCache {
+		stockKeys[index] = k
 		index++
 	}
 
+	iex := assets.IEXMarketBatch{}
+	err = iex.Fetch(assets.IEXRequest{
+		Symbols:     stockKeys,
+		Information: []string{"price"},
+	})
+	if err != nil {
+		commandsLogger.Errorf("error fetching stock price: %v", err)
+		return "Error fetching prices - try again later", err
+	}
+
+	cryptoKeys := make([]string, len(cryptoCache))
+	index = 0
+	for k, _ := range cryptoCache {
+		cryptoKeys[index] = k
+		index++
+	}
+
+	cc := assets.CCMulti{}
+	err = cc.Fetch(assets.CCRequest{
+		FromSymbols: cryptoKeys,
+		ToSymbols:   []string{"USD"},
+	})
+	if err != nil {
+		commandsLogger.Errorf("error fetching crypto price: %v", err)
+		return "Error fetching prices - try again later", err
+	}
+
+	users := make([]struct{
+		user *slack.User
+		total float64
+	}, len(s.users))
+
+	index = 0
+	for _, user := range s.users {
+		total := user.balance
+
+		for k, _ := range user.portfolio.stock {
+			to := iex.Batch[k]
+			total += *to.Price
+		}
+
+		for k, _ := range user.portfolio.cryptocurrency {
+			to := cc.Batch[k]
+			total += to["USD"]
+		}
+
+		users[index] = struct {
+			user *slack.User
+			total float64
+		}{
+			user: user.slackUser,
+			total: total,
+		}
+	}
+
 	sort.Slice(users, func(i int, j int) bool {
-		return users[i].balance > users[j].balance
+		return users[i].total > users[j].total
 	})
 
 	builder.WriteString("*Leaderboard*\n")
 
-	for i, user := range users {
-		builder.WriteString(fmt.Sprintf("%d - %s (%s): %.2f\n", i, user.slackUser.Name, user.slackUser.RealName, user.balance))
+	index = 0
+	for _, user := range users {
+		builder.WriteString(fmt.Sprintf(
+			"%d - %s (%s): %.2f\n",
+			index,
+			user.user.Name,
+			user.user.RealName,
+			user.total,
+		))
+		index++
 	}
 
 	return builder.String(), nil
