@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/nlopes/slack"
 	"github.com/nlopes/slack/slackevents"
 )
 
