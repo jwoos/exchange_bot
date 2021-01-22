@@ -16,3 +16,8 @@ vendor/
 
 # exec
 slack_exchange
+
+
+#Added by cargo
+
+/target
