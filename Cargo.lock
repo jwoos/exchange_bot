@@ -173,6 +173,7 @@ dependencies = [
  "lazy_static",
  "pretty_env_logger",
  "serde",
+ "serde_json",
  "tokio",
  "warp",
 ]
