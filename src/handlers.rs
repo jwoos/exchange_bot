@@ -1,5 +1,9 @@
-use crate::slack::event;
+use crate::slack::{event, event_wrapper};
 use std::convert::Infallible;
+
+pub async fn echo(data: serde_json::Value) -> Result<impl warp::Reply, Infallible> {
+    Ok(warp::reply::json(&data))
+}
 
 #[derive(serde::Serialize)]
 struct Status<'a> {
@@ -13,13 +17,13 @@ pub async fn status() -> Result<impl warp::Reply, Infallible> {
 pub async fn events_url_verification(
     event: event::url_verification::UrlVerification,
 ) -> Result<impl warp::Reply, Infallible> {
-    return Ok(warp::reply::json(
+    Ok(warp::reply::json(
         &serde_json::json!({"challenge": event.get_challenge()}),
-    ));
+    ))
 }
 
-pub async fn events(event: impl event::Event) -> Result<impl warp::Reply, Infallible> {
+pub async fn events(event: event_wrapper::EventWrapper) -> Result<impl warp::Reply, Infallible> {
     Ok(warp::reply::json(
-        &serde_json::json!({"status": "Invalid event type!"}),
+        &serde_json::json!({"status": "received"}),
     ))
 }

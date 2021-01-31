@@ -3,7 +3,7 @@ use std::vec::Vec;
 
 use super::event;
 
-#[derive(serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 pub struct Authorization {
     enterprise_id: String,
     team_id: String,
