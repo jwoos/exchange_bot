@@ -1,4 +1,5 @@
 use std::boxed::Box;
+use std::marker;
 use std::vec::Vec;
 
 use super::event;
@@ -17,7 +18,7 @@ pub struct EventWrapper {
     team_id: String,
     api_app_id: String,
     #[serde(deserialize_with = "event_deserialize")]
-    event: Box<dyn event::Event>,
+    event: Box<dyn event::Event + marker::Send + marker::Sync>,
     #[serde(alias = "type")]
     type_: String,
     authed_users: Vec<String>,
@@ -31,14 +32,16 @@ pub struct EventWrapper {
 /* deals with deserialization of the inner event, whose structure depends on
  * what type it is
  */
-fn event_deserialize<'a, 'de, D>(deserializer: D) -> Result<Box<dyn event::Event>, D::Error>
+fn event_deserialize<'a, 'de, D>(
+    deserializer: D,
+) -> Result<Box<dyn event::Event + marker::Send + marker::Sync>, D::Error>
 where
     D: serde::de::Deserializer<'de>,
 {
     struct EventVisitor;
 
     impl<'de> serde::de::Visitor<'de> for EventVisitor {
-        type Value = Box<dyn event::Event>;
+        type Value = Box<dyn event::Event + marker::Send + marker::Sync>;
 
         fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
             formatter.write_str("a map")

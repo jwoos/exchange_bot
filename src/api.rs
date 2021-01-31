@@ -71,8 +71,7 @@ fn events_url_verification(
         .and_then(handlers::events_url_verification)
 }
 
+// TODO fix
 fn events() -> impl warp::Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    warp::path!("slack" / "events")
-        .and(events_url_verification_filter().and_then(handlers::events_url_verification))
-        .or(events_filter().and_then(handlers::events))
+    warp::path!("slack" / "events").and(post_json_filter().and_then(handlers::echo))
 }
