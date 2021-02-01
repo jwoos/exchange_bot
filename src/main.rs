@@ -1,5 +1,6 @@
 mod api;
 mod handlers;
+mod iex;
 mod processor;
 mod slack;
 
