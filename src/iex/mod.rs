@@ -21,8 +21,22 @@ impl<'a> Client<'a> {
         API_SANDBOX_BASE
     }
 
-    pub async fn make_request<R: RequestBuilder>(&self, builder: R) -> impl Response {
-        DummyResponse {}
+    // TODO actually use errors properly
+    pub async fn make_request<Req, Res>(&self, builder: Req) -> Result<Res, &'static str>
+    where
+        Req: RequestBuilder,
+        Res: for<'de> serde::Deserialize<'de>,
+    {
+        let url = builder.build(self.get_base());
+        let resp = self
+            .client
+            .get(&url)
+            .query(&[("token", &self.token)])
+            .send()
+            .await
+            .or(Err("Error making request"))?;
+        let json = resp.json().await.or(Err("Error getting json"))?;
+        serde_json::from_value(json).or(Err("Unable to deserialize result"))
     }
 }
 
@@ -33,17 +47,4 @@ pub enum Type {
 
 pub trait RequestBuilder {
     fn build(&self, base: &str) -> String;
-}
-
-pub trait Response {
-    fn get_type(&self) -> Type;
-}
-
-// only for testing/building out the actual fn
-pub struct DummyResponse {}
-
-impl Response for DummyResponse {
-    fn get_type(&self) -> Type {
-        Type::Dummy
-    }
 }

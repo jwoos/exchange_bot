@@ -78,9 +78,3 @@ pub struct StockQuoteResponse {
     pub last_trade_time: i64,
     pub is_us_market_open: bool,
 }
-
-impl Response for StockQuoteResponse {
-    fn get_type(&self) -> Type {
-        Type::Stock(StockType::Quote)
-    }
-}
