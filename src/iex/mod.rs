@@ -40,11 +40,6 @@ impl<'a> Client<'a> {
     }
 }
 
-pub enum Type {
-    Dummy,
-    Stock(stock::StockType),
-}
-
 pub trait RequestBuilder {
     fn build(&self, base: &str) -> String;
 }
