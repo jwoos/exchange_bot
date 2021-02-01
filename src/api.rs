@@ -21,7 +21,8 @@ fn status() -> impl warp::Filter<Extract = impl warp::Reply, Error = warp::Rejec
         .and_then(handlers::status)
 }
 
-fn with_request_client() -> impl Filter<Extract = (&'static reqwest::Client,), Error = Infallible> + Clone {
+fn with_request_client(
+) -> impl Filter<Extract = (&'static reqwest::Client,), Error = Infallible> + Clone {
     warp::any().map(|| &(*REQUEST_CLIENT))
 }
 

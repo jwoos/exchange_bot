@@ -79,6 +79,12 @@ where
     deserializer.deserialize_any(EventVisitor {})
 }
 
+impl EventWrapper {
+    pub fn get_event<'a>(&'a self) -> &'a Box<dyn event::Event + marker::Send + marker::Sync> {
+        &self.event
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::event::app_mention::AppMention;

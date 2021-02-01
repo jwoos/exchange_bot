@@ -1,5 +1,6 @@
 mod api;
 mod handlers;
+mod processor;
 mod slack;
 
 use warp::Filter;

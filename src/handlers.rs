@@ -1,5 +1,7 @@
-use crate::slack::{event, event_wrapper};
 use std::convert::Infallible;
+
+use crate::processor::Processor;
+use crate::slack::{event, event_wrapper};
 
 pub async fn echo(data: serde_json::Value) -> Result<impl warp::Reply, Infallible> {
     Ok(warp::reply::json(&data))
@@ -15,7 +17,10 @@ pub async fn status() -> Result<impl warp::Reply, Infallible> {
 }
 
 // TODO create a response struct and impl Serialize on it and use that to return
-pub async fn events(event: serde_json::Value, client: &reqwest::Client) -> Result<impl warp::Reply, Infallible> {
+pub async fn events(
+    event: serde_json::Value,
+    client: &reqwest::Client,
+) -> Result<impl warp::Reply, Infallible> {
     let event_type_opt = event
         .get("type")
         .and_then(|event_type: &serde_json::Value| event_type.as_str());
@@ -34,18 +39,23 @@ pub async fn events(event: serde_json::Value, client: &reqwest::Client) -> Resul
                     ));
                 } else {
                     return Ok(warp::reply::with_status(
-                        warp::reply::json(
-                            &serde_json::json!({"message": "Invalid event callback"}),
-                        ),
+                        warp::reply::json(&serde_json::json!({"message": "Invalid event"})),
                         http::status::StatusCode::BAD_REQUEST,
                     ));
                 }
             }
             "event_callback" => {
-                return Ok(warp::reply::with_status(
-                    warp::reply::json(&serde_json::json!({"message": "Not implemented"})),
-                    http::status::StatusCode::BAD_REQUEST,
-                ))
+                if let Ok(event_wrapper) =
+                    serde_json::from_value::<event_wrapper::EventWrapper>(event)
+                {
+                    let proessor = Processor::new(event_wrapper);
+                    return proessor.process().await;
+                } else {
+                    return Ok(warp::reply::with_status(
+                        warp::reply::json(&serde_json::json!({"message": "Invalid event"})),
+                        http::status::StatusCode::BAD_REQUEST,
+                    ));
+                }
             }
             _ => {
                 return Ok(warp::reply::with_status(
