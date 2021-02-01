@@ -14,16 +14,8 @@ pub async fn status() -> Result<impl warp::Reply, Infallible> {
     Ok(warp::reply::json(&Status { status: "okay" }))
 }
 
-pub async fn events_url_verification(
-    event: event::url_verification::UrlVerification,
-) -> Result<impl warp::Reply, Infallible> {
-    Ok(warp::reply::json(
-        &serde_json::json!({"challenge": event.get_challenge()}),
-    ))
-}
-
 // TODO create a response struct and impl Serialize on it and use that to return
-pub async fn events(event: serde_json::Value) -> Result<impl warp::Reply, Infallible> {
+pub async fn events(event: serde_json::Value, client: &reqwest::Client) -> Result<impl warp::Reply, Infallible> {
     let event_type_opt = event
         .get("type")
         .and_then(|event_type: &serde_json::Value| event_type.as_str());
