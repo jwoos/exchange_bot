@@ -13,6 +13,8 @@ impl StockQuoteRequestBuilder {
 }
 
 impl RequestBuilder for StockQuoteRequestBuilder {
+    type Response = StockQuoteResponse;
+
     fn build(&self, base: &str) -> String {
         std::format!("{}/stock/{}/quote", base, self.ticker)
     }
@@ -156,7 +158,7 @@ mod tests {
 
         let request = StockQuoteRequestBuilder::new("aapl");
 
-        let resp: StockQuoteResponse = tokio_test::block_on(client.make_request(request))?;
+        let resp = tokio_test::block_on(client.make_request(request))?;
 
         Ok(())
     }

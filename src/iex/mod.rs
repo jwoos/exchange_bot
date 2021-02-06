@@ -22,10 +22,10 @@ impl<'a> Client<'a> {
     }
 
     // TODO actually use errors properly
-    pub async fn make_request<Req, Res>(&self, builder: Req) -> Result<Res, &'static str>
+    pub async fn make_request<Req>(&self, builder: Req) -> Result<Req::Response, &'static str>
     where
         Req: RequestBuilder,
-        Res: for<'de> serde::Deserialize<'de>,
+        Req::Response: for<'de> serde::Deserialize<'de>,
     {
         let url = builder.build(self.get_base());
         let resp = self
@@ -41,5 +41,7 @@ impl<'a> Client<'a> {
 }
 
 pub trait RequestBuilder {
+    type Response;
+
     fn build(&self, base: &str) -> String;
 }
