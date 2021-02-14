@@ -144,12 +144,13 @@ mod tests {
             "week52Low":57.36,
             "ytdChange":-0.04294152218978952
         }"#;
-        let val: StockQuoteResponse = serde_json::from_str(raw_data)?;
+        let _val: StockQuoteResponse = serde_json::from_str(raw_data)?;
 
         Ok(())
     }
 
     #[test]
+    #[ignore]
     fn test_request() -> Result<(), &'static str> {
         let token = std::env::var("EXCHANGE_IEX_TOKEN")
             .or(Err("Could not find token in environment variable"))?;
@@ -158,7 +159,7 @@ mod tests {
 
         let request = StockQuoteRequestBuilder::new("aapl");
 
-        let resp = tokio_test::block_on(client.make_request(request))?;
+        let _resp = tokio_test::block_on(client.make_request(request))?;
 
         Ok(())
     }
