@@ -1,8 +1,11 @@
 mod api;
+mod asset;
 mod handlers;
 mod iex;
+mod portfolio;
 mod processor;
 mod slack;
+mod user;
 
 use warp::Filter;
 

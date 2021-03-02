@@ -1,7 +1,9 @@
+use std::collections::HashMap;
 use std::convert::Infallible;
 
 use crate::processor::Processor;
 use crate::slack::{event, event_wrapper};
+use crate::user::User;
 
 pub async fn echo(data: serde_json::Value) -> Result<impl warp::Reply, Infallible> {
     Ok(warp::reply::json(&data))
@@ -34,6 +36,7 @@ impl<'a> UrlVerificationResponse<'a> {
 pub async fn events(
     event: serde_json::Value,
     client: &reqwest::Client,
+    user_table: &HashMap<String, User>,
 ) -> Result<impl warp::Reply, Infallible> {
     let event_type_opt = event
         .get("type")
@@ -62,8 +65,8 @@ pub async fn events(
                 if let Ok(event_wrapper) =
                     serde_json::from_value::<event_wrapper::EventWrapper>(event)
                 {
-                    let proessor = Processor::new(event_wrapper);
-                    return proessor.process().await;
+                    let processor = Processor::new(event_wrapper);
+                    return processor.process(client, user_table).await;
                 } else {
                     return Ok(warp::reply::with_status(
                         warp::reply::json(&serde_json::json!({"message": "Invalid event"})),
